@@ -11,62 +11,126 @@ namespace server.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, ILogger<AuthController> logger)
     {
         _authService = authService;
+        _logger = logger;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
     {
-        if (!ModelState.IsValid)
+        try
         {
-            return BadRequest(new { message = "Invalid request data", errors = ModelState });
-        }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid request data", errors = ModelState });
+            }
 
-        var result = await _authService.RegisterAsync(request);
-        if (result == null)
+            if (string.IsNullOrWhiteSpace(request.FullName))
+            {
+                return BadRequest(new { message = "Full name is required" });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                return BadRequest(new { message = "Email is required" });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest(new { message = "Password is required" });
+            }
+
+            if (request.Password.Length < 6)
+            {
+                return BadRequest(new { message = "Password must be at least 6 characters" });
+            }
+
+            var validRoles = new[] { "Student", "Faculty", "Admin" };
+            if (!validRoles.Contains(request.Role))
+            {
+                return BadRequest(new { message = "Invalid role. Must be Student, Faculty, or Admin" });
+            }
+
+            var result = await _authService.RegisterAsync(request);
+            if (result == null)
+            {
+                return BadRequest(new { message = "User with this email already exists" });
+            }
+
+            _logger.LogInformation("User registered successfully: {Email}", request.Email);
+            return Ok(result);
+        }
+        catch (Exception ex)
         {
-            return BadRequest(new { message = "User with this email already exists" });
+            _logger.LogError(ex, "Error during registration");
+            return StatusCode(500, new { message = "An error occurred during registration" });
         }
-
-        return Ok(result);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
-        if (!ModelState.IsValid)
+        try
         {
-            return BadRequest(new { message = "Invalid request data", errors = ModelState });
-        }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid request data", errors = ModelState });
+            }
 
-        var result = await _authService.LoginAsync(request);
-        if (result == null)
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                return BadRequest(new { message = "Email is required" });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest(new { message = "Password is required" });
+            }
+
+            var result = await _authService.LoginAsync(request);
+            if (result == null)
+            {
+                return Unauthorized(new { message = "Invalid email or password" });
+            }
+
+            _logger.LogInformation("User logged in successfully: {Email}", request.Email);
+            return Ok(result);
+        }
+        catch (Exception ex)
         {
-            return Unauthorized(new { message = "Invalid email or password" });
+            _logger.LogError(ex, "Error during login");
+            return StatusCode(500, new { message = "An error occurred during login" });
         }
-
-        return Ok(result);
     }
 
     [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetCurrentUser()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        try
         {
-            return Unauthorized(new { message = "Invalid token" });
-        }
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(new { message = "Invalid token" });
+            }
 
-        var user = await _authService.GetUserByIdAsync(userId);
-        if (user == null)
+            var user = await _authService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            return Ok(user);
+        }
+        catch (Exception ex)
         {
-            return NotFound(new { message = "User not found" });
+            _logger.LogError(ex, "Error getting current user");
+            return StatusCode(500, new { message = "An error occurred" });
         }
-
-        return Ok(user);
     }
 }
