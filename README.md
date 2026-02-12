@@ -2,6 +2,8 @@
 
 A full-stack Academic Audit Management System for colleges/universities.
 
+---
+
 ## 🏗 Tech Stack
 
 **Frontend**
@@ -19,17 +21,53 @@ A full-stack Academic Audit Management System for colleges/universities.
 
 ---
 
+## 📸 Application Demo
+
+### 🔐 Authentication
+
+<p align="center">
+  <img src="docs/images/login.png" width="45%" />
+  <img src="docs/images/signup.png" width="45%" />
+</p>
+
+### 📊 Dashboard
+
+<p align="center">
+  <img src="docs/images/dashboard.png" width="80%" />
+</p>
+
+### 👨‍🎓 Student Management
+
+<p align="center">
+  <img src="docs/images/student_management.png" width="80%" />
+</p>
+
+### 📝 Marks Upload
+
+<p align="center">
+  <img src="docs/images/marks_upload.png" width="80%" />
+</p>
+
+### 📑 Audit Reports
+
+<p align="center">
+  <img src="docs/images/audit_report.png" width="80%" />
+</p>
+
+---
+
 ## 🚀 Windows Setup Guide (Main Branch - .NET 10)
 
-> This branch requires .NET 10 SDK
+⚠ **This branch requires .NET 10 SDK**
 
 ### ✅ 1. Install Required Software
 
 **1️⃣ Install Node.js (LTS)**  
 Download:  
 https://nodejs.org  
+
 Verify:  
-```powershell
+```bash
 node -v
 npm -v
 ```
@@ -37,20 +75,17 @@ npm -v
 **2️⃣ Install PostgreSQL (v15+)**  
 Download:  
 https://www.postgresql.org/download/windows/  
-> During installation:  
-> - Remember your password  
-> - Default port: 5432
+> During installation, remember your password and default port: 5432
 
 **3️⃣ Install .NET 10 SDK (x64)**  
 Download:  
 https://dotnet.microsoft.com/download  
-Verify installation:  
+
+Verify:  
 ```bash
 dotnet --version
 ```
-Expected output:
-> 10.0.xxx  
-If not → install correct SDK.
+Expected output: `10.0.xxx`
 
 ---
 
@@ -63,72 +98,57 @@ git checkout main
 
 ---
 
-### 🗄 3. Setup Database  
-Open PowerShell:
+### 🗄 3. Setup Database
 
+Open PowerShell:
 ```bash
 psql -U postgres
 ```
-Enter your password.
-
 Create database:
 ```sql
 CREATE DATABASE academicaudit;
 ```
 Exit:
-```bash
+```
 \q
 ```
 
 ---
 
-### ⚙ 4. Setup Backend  
-Go to server folder:
+### ⚙ 4. Setup Backend
 ```bash
 cd server
-```
-Restore dependencies:
-```bash
 dotnet restore
-```
-Build:
-```bash
 dotnet build
-```
-Run:
-```bash
 dotnet run
 ```
 Backend should start on:
-> http://localhost:5001  
-(Check `launchSettings.json` if different)
+> http://localhost:5001
 
 ---
 
-### 💻 5. Setup Frontend  
-Open a new terminal.
-
+### 💻 5. Setup Frontend
 ```bash
 cd client
 npm install
 npm run dev
 ```
-Frontend will run on:
+Frontend runs on:
 > http://localhost:5173
 
 ---
 
-### 🔗 6. Verify API Connection  
-Make sure `client/src/api/axios.js` has:
+### 🔗 6. Verify API Connection
 
+Ensure `client/src/api/axios.js` contains:
 ```js
 baseURL: "http://localhost:5001/api"
 ```
-Now open:
 
-> http://localhost:5173
+Open:  
+http://localhost:5173
 
-Try:
+Test:
 - Register
 - Login
 
@@ -136,17 +156,118 @@ If successful → setup complete 🎉
 
 ---
 
+## 🗄 Database Schema (PostgreSQL)
+
+If you prefer manual schema setup instead of migrations, run the following SQL:
+
+```sql
+CREATE DATABASE academicaudit;
+
+DROP TABLE IF EXISTS "Marks" CASCADE;
+DROP TABLE IF EXISTS "AuditReports" CASCADE;
+DROP TABLE IF EXISTS "Courses" CASCADE;
+DROP TABLE IF EXISTS "Faculties" CASCADE;
+DROP TABLE IF EXISTS "Students" CASCADE;
+DROP TABLE IF EXISTS "Users" CASCADE;
+
+CREATE TABLE "Users" (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'Student',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_users_email ON "Users"(email);
+CREATE INDEX idx_users_role ON "Users"(role);
+
+ALTER TABLE "Users" ADD CONSTRAINT chk_user_role 
+CHECK (role IN ('Student', 'Faculty', 'Admin'));
+
+CREATE TABLE "Students" (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL UNIQUE,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    department VARCHAR(50),
+    semester VARCHAR(20),
+    year VARCHAR(20),
+    enrollment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE "Faculties" (
+    id SERIAL PRIMARY KEY,
+    faculty_id VARCHAR(50) NOT NULL UNIQUE,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    department VARCHAR(50),
+    specialization VARCHAR(100),
+    designation VARCHAR(20),
+    joining_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE "Courses" (
+    id SERIAL PRIMARY KEY,
+    course_code VARCHAR(50) NOT NULL UNIQUE,
+    course_name VARCHAR(200) NOT NULL,
+    department VARCHAR(50),
+    semester VARCHAR(20),
+    credits INTEGER DEFAULT 0,
+    description VARCHAR(500),
+    faculty_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE "Marks" (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL,
+    course_id INTEGER NOT NULL,
+    exam_type VARCHAR(50) NOT NULL,
+    marks_obtained DECIMAL(5,2) NOT NULL,
+    max_marks DECIMAL(5,2) NOT NULL,
+    semester VARCHAR(20),
+    year VARCHAR(20),
+    exam_date TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE "AuditReports" (
+    id SERIAL PRIMARY KEY,
+    report_title VARCHAR(200) NOT NULL,
+    report_type VARCHAR(50),
+    department VARCHAR(50),
+    semester VARCHAR(20),
+    year VARCHAR(20),
+    report_data TEXT,
+    status VARCHAR(50) DEFAULT 'Draft',
+    generated_by INTEGER NOT NULL,
+    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
 ## 🛠 Troubleshooting
 
-#### 🔴 Port Already In Use
+**🔴 Port Already In Use**
 
 ```powershell
 Get-Process dotnet
 Stop-Process -Name dotnet -Force
 ```
 
-#### 🔴 Database Connection Error
-Check `appsettings.json`:
+**🔴 Database Connection Error**  
+Check your connection string:
 
 ```json
 "ConnectionStrings": {
@@ -156,11 +277,10 @@ Check `appsettings.json`:
 
 ---
 
-### 📌 Recommended (Prevent SDK Issues)
+## 📌 Recommended (Prevent SDK Issues)
 
-Add this file to root:
+Create `global.json` at the project root:
 
-**global.json**
 ```json
 {
   "sdk": {
@@ -168,14 +288,13 @@ Add this file to root:
   }
 }
 ```
-This ensures everyone uses the same SDK version.
 
 ---
 
 ## 🌿 Branch Strategy
 
-- **main** → .NET 10 (Windows environment)
-- **arch** → .NET 8 (Linux environment)
+- `main` → .NET 10 (Windows environment)
+- `arch` → .NET 8 (Linux environment)
 
 ---
 
