@@ -1,3 +1,5 @@
+CREATE DATABSE IF NOT EXISTS "academicaudit";
+
 -- Drop existing tables if they exist
 DROP TABLE IF EXISTS "Marks" CASCADE;
 DROP TABLE IF EXISTS "AuditReports" CASCADE;
