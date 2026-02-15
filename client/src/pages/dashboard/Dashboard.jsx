@@ -7,10 +7,10 @@ const Dashboard = () => {
     ];
 
     const recentActivities = [
-        { action: 'New student enrolled', user: 'John Doe', time: '2 hours ago' },
-        { action: 'Marks uploaded for CS101', user: 'Dr. Smith', time: '4 hours ago' },
+        { action: 'New student enrolled', user: 'Shivam Singh', time: '2 hours ago' },
+        { action: 'Marks uploaded for CS101', user: 'Dr. Prakash', time: '4 hours ago' },
         { action: 'Audit report generated', user: 'Admin', time: '1 day ago' },
-        { action: 'New course added', user: 'Dr. Johnson', time: '2 days ago' },
+        { action: 'New course added', user: 'Dr. Jasvant', time: '2 days ago' },
     ];
 
     return (
