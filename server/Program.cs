@@ -61,10 +61,11 @@ var app = builder.Build();
 
 app.UseCors("AllowReactApp");
 
+app.UseMiddleware<ExceptionMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
 
