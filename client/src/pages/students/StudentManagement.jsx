@@ -633,7 +633,6 @@ const StudentManagement = () => {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // ================= FETCH STUDENTS =================
     const fetchStudents = async () => {
         try {
             setLoading(true);
@@ -650,7 +649,6 @@ const StudentManagement = () => {
         fetchStudents();
     }, []);
 
-    // ================= HANDLE INPUT CHANGE =================
     const handleChange = (e) => {
         setStudent({
             ...student,
@@ -658,7 +656,6 @@ const StudentManagement = () => {
         });
     };
 
-    // ================= RESET FORM =================
     const resetForm = () => {
         setStudent({
             studentId: "",
@@ -673,7 +670,6 @@ const StudentManagement = () => {
         setEditingId(null);
     };
 
-    // ================= ADD / UPDATE =================
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -697,7 +693,6 @@ const StudentManagement = () => {
         }
     };
 
-    // ================= DELETE =================
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this student?")) return;
 
@@ -711,7 +706,6 @@ const StudentManagement = () => {
         }
     };
 
-    // ================= EDIT =================
     const handleEdit = (s) => {
         setStudent({
             studentId: s.studentId,
@@ -727,7 +721,6 @@ const StudentManagement = () => {
         setShowForm(true);
     };
 
-    // ================= SEARCH FILTER =================
     const filteredStudents = students.filter((s) =>
         s.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.studentId?.toLowerCase().includes(searchTerm.toLowerCase())
